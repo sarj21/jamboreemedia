@@ -7,6 +7,17 @@
 
     <title>Jamboree Media</title>
 
+    <script>
+      fetch("date.json")
+        .then((response) => response.json())
+        .then((data) => {
+          document.getElementById("show-date").textContent = data.date;
+        })
+        .catch((error) => {
+          console.error("Could not load show date:", error);
+        });
+    </script>
+
     <style>
       @font-face {
         font-family: "GR Read One";
@@ -33,6 +44,7 @@
       body {
         margin: 0;
         min-height: 100%;
+        background-color: #000;
       }
 
       body {
@@ -569,7 +581,7 @@
       <section class="show">
         <p class="show-label">Next Show</p>
 
-        <h2 class="show-date">August 29, 2026</h2>
+        <h2 class="show-date" id="show-date"></h2>
 
         <a
           class="tickets"
