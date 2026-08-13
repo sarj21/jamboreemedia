@@ -2,21 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
     <link rel="icon" type="image/png" href="img/favicon.png" />
 
     <title>Jamboree Media</title>
-
-    <script>
-      fetch("date.json")
-        .then((response) => response.json())
-        .then((data) => {
-          document.getElementById("show-date").textContent = data.date;
-        })
-        .catch((error) => {
-          console.error("Could not load show date:", error);
-        });
-    </script>
 
     <style>
       @font-face {
@@ -43,14 +35,23 @@
       html,
       body {
         margin: 0;
+        padding: 0;
+        width: 100%;
         min-height: 100%;
-        background-color: #08213a;
+        background-color: #000000;
+      }
+
+      html {
+        overflow-x: hidden;
+        background: #000000;
       }
 
       body {
-        min-height: 100vh;
+        min-height: 100dvh;
+
         padding: 35px;
 
+        background-color: #000000;
         background-image: url("img/background.png");
         background-size: cover;
         background-position: center;
@@ -65,7 +66,7 @@
 
       .page {
         width: 100%;
-        min-height: calc(100vh - 70px);
+        min-height: calc(100dvh - 70px);
 
         display: flex;
         flex-direction: column;
@@ -92,7 +93,6 @@
         font-weight: normal;
         line-height: 0.72;
         letter-spacing: -9px;
-
         text-transform: uppercase;
         white-space: nowrap;
 
@@ -110,7 +110,6 @@
         font-weight: normal;
         line-height: 0.72;
         letter-spacing: -7px;
-
         text-transform: uppercase;
         white-space: nowrap;
 
@@ -124,10 +123,6 @@
       .show {
         width: min(850px, 100%);
 
-        /*
-         * Keeps the show information high on the page,
-         * away from the busier lower part of the image.
-         */
         margin-top: clamp(45px, 6vh, 75px);
         margin-left: auto;
 
@@ -160,7 +155,6 @@
         font-weight: 800;
         line-height: 0.85;
         letter-spacing: -5px;
-
         text-transform: uppercase;
         white-space: nowrap;
       }
@@ -185,7 +179,6 @@
         color: var(--black);
 
         text-decoration: none;
-
         overflow: hidden;
 
         transition:
@@ -202,7 +195,6 @@
         background: var(--red);
 
         transform: translateY(100%);
-
         transition: transform 0.25s ease;
       }
 
@@ -319,12 +311,16 @@
 
       @media (max-width: 700px) {
         body {
-          padding: 20px;
+          min-height: 100dvh;
+
+          padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
+
           background-attachment: scroll;
         }
 
         .page {
-          min-height: calc(100vh - 40px);
+          min-height: calc(100dvh - 40px - env(safe-area-inset-bottom));
+
           width: 100%;
         }
 
@@ -360,7 +356,6 @@
           margin-left: 2px;
 
           font-size: clamp(45px, 14vw, 82px);
-
           line-height: 0.8;
           letter-spacing: -3px;
 
@@ -384,7 +379,6 @@
           margin-bottom: 12px;
 
           padding: 5px 8px;
-
           font-size: 10px;
           letter-spacing: 1.5px;
         }
@@ -406,7 +400,6 @@
 
         .tickets {
           width: 100%;
-
           margin-top: 20px;
           padding: 14px 16px;
 
@@ -455,7 +448,6 @@
           display: flex;
           align-items: center;
           gap: clamp(10px, 3vw, 15px);
-
           flex-shrink: 0;
         }
 
@@ -483,7 +475,6 @@
 
         .contact a {
           display: block;
-
           max-width: 100%;
 
           white-space: nowrap;
@@ -493,16 +484,16 @@
       }
 
       /* ========================================
-   SMALL PHONES
-======================================== */
+         SMALL PHONES
+      ======================================== */
 
       @media (max-width: 450px) {
         body {
-          padding: 14px;
+          padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
         }
 
         .page {
-          min-height: calc(100vh - 28px);
+          min-height: calc(100dvh - 28px - env(safe-area-inset-bottom));
         }
 
         .brand h1 {
@@ -581,7 +572,7 @@
       <section class="show">
         <p class="show-label">Next Show</p>
 
-        <h2 class="show-date" id="show-date"></h2>
+        <h2 class="show-date" id="show-date">August 29, 2026</h2>
 
         <a
           class="tickets"
@@ -634,5 +625,25 @@
         </footer>
       </div>
     </main>
+
+    <script>
+      fetch("date.json?cache=" + Date.now())
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Could not load show.json");
+          }
+
+          return response.json();
+        })
+        .then((data) => {
+          if (data.date) {
+            document.getElementById("show-date").textContent = data.date;
+          }
+        })
+        .catch((error) => {
+          console.error("Could not load show date:", error);
+          // The HTML fallback date remains visible if show.json fails.
+        });
+    </script>
   </body>
 </html>
