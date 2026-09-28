@@ -54,13 +54,15 @@
 	>
 		{#each data.shows as show (show.date + show.ticketUrl)}
 			<div>
-				{#if show.isNext}
-					<p
-						class="mb-3 inline-block bg-[var(--red)] px-[10px] py-[6px] text-[12px] font-extrabold tracking-[2px] uppercase"
-					>
-						Next Show
-					</p>
-				{/if}
+				<div class="mb-3 flex flex-wrap items-center gap-2">
+					{#if show.isNext}
+						<span class="show-tag show-next"> Next Show </span>
+					{/if}
+
+					<span class="show-tag" style={`--city-color: ${show.cityColor}`}>
+						{show.city}
+					</span>
+				</div>
 
 				<h2
 					class="m-0 w-full text-[clamp(36px,5.5vw,84px)] leading-[0.9] font-extrabold tracking-[-0.04em] uppercase"
@@ -134,6 +136,26 @@
 		opacity: 0.8;
 	}
 
+	.show-tag {
+		display: inline-flex;
+		align-items: center;
+		height: 30px;
+		padding: 0 10px;
+		background: var(--city-color, var(--red));
+		color: var(--black);
+		font-size: 13px;
+		line-height: 1;
+		font-weight: 800;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.2);
+	}
+
+	.show-next {
+		background: var(--red);
+		color: var(--white);
+	}
+
 	@media (max-width: 700px) {
 		main {
 			padding: 20px 20px env(safe-area-inset-bottom);
@@ -152,6 +174,12 @@
 		.social-link {
 			width: 58px;
 			height: 58px;
+		}
+
+		.show-tag {
+			height: 28px;
+			padding: 0 9px;
+			font-size: 12px;
 		}
 
 		section {

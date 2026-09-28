@@ -1,5 +1,7 @@
 export type Show = {
 	date: string;
+	city: string;
+	cityColor: string;
 	ticketUrl: string;
 };
 

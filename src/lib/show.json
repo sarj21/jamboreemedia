@@ -1,6 +1,14 @@
 [
 	{
 		"date": "October 15, 2026",
-		"ticketUrl": "https://tiny.cc/jamboree"
+		"ticketUrl": "https://tiny.cc/jamboree",
+		"cityColor": "#5FB8B2",
+		"city": "New York"
+	},
+	{
+		"date": "November 21, 2026",
+		"ticketUrl": "https://theannoyance.thundertix.com/events/267985",
+		"cityColor": "#5BA9D6",
+		"city": "Chicago"
 	}
 ]
