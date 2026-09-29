@@ -8,7 +8,7 @@
 	<title>Jamboree Media</title>
 </svelte:head>
 
-<main class="page flex min-h-dvh w-full flex-col p-[35px] text-white">
+<main class="page flex h-dvh w-full flex-col overflow-hidden px-[35px] py-[25px] text-white">
 	<header class="relative z-[2] w-full">
 		<h1
 			class="brand-title m-0 w-full max-w-full overflow-hidden text-[clamp(42px,9.2vw,148px)] leading-[0.85] font-normal tracking-[-0.045em] whitespace-nowrap uppercase text-shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
@@ -50,13 +50,13 @@
 	</header>
 
 	<section
-		class="relative z-[3] mt-[clamp(36px,5vh,64px)] ml-auto flex w-full max-w-[850px] flex-col gap-10"
+		class="relative z-[3] mt-[clamp(28px,4vh,48px)] ml-auto flex w-full max-w-[850px] flex-col gap-[clamp(20px,3vh,40px)]"
 	>
 		{#each data.shows as show (show.date + show.ticketUrl)}
 			<div>
 				<div class="mb-3 flex flex-wrap items-center gap-2">
 					{#if show.isNext}
-						<span class="show-tag show-next"> Next Show </span>
+						<span class="show-tag show-next">Next Show</span>
 					{/if}
 
 					<span class="show-tag" style={`--city-color: ${show.cityColor}`}>
@@ -74,7 +74,7 @@
 					href={show.ticketUrl}
 					target="_blank"
 					rel="noopener noreferrer"
-					class="group relative mt-[18px] flex w-full items-center justify-between overflow-hidden bg-[var(--yellow)] px-6 py-[17px] text-[var(--black)] no-underline transition-transform duration-200 hover:-translate-x-2 hover:text-white"
+					class="group relative mt-[14px] flex w-full items-center justify-between overflow-hidden bg-[var(--yellow)] px-6 py-[13px] ..."
 				>
 					<span
 						class="absolute inset-0 translate-y-full bg-[var(--red)] transition-transform duration-250 group-hover:translate-y-0"
@@ -96,7 +96,7 @@
 		{/each}
 	</section>
 
-	<footer class="mt-auto flex justify-end pt-[50px] text-right text-[15px]">
+	<footer class="mt-auto flex w-full justify-end pt-[30px] text-right text-[15px]">
 		<div>
 			<span class="mb-1 block text-[10px] font-extrabold tracking-[2px] text-white/70 uppercase">
 				Contact
@@ -192,6 +192,11 @@
 		section h2 {
 			font-size: clamp(28px, 9vw, 52px);
 			letter-spacing: -0.03em;
+		}
+
+		footer {
+			margin-top: 2rem;
+			padding-top: 10px;
 		}
 	}
 
