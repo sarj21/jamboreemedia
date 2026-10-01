@@ -51,7 +51,7 @@
 			</span>
 		</div>
 		<h1
-			class="brand-title m-0 w-full max-w-full overflow-hidden text-[clamp(36px,7vw,96px)] leading-[0.85] font-normal tracking-[-0.045em] whitespace-nowrap uppercase text-shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
+			class="brand-title m-0 w-full max-w-full overflow-hidden text-[clamp(24px,4.6vw,68px)] leading-[0.85] font-normal tracking-[-0.045em] whitespace-nowrap uppercase text-shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
 		>
 			Booking for {data.date}
 		</h1>
