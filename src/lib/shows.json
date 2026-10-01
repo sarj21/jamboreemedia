@@ -3,12 +3,16 @@
 		"date": "October 15, 2026",
 		"ticketUrl": "https://tiny.cc/jamboree",
 		"cityColor": "#5FB8B2",
-		"city": "New York"
+		"city": "New York",
+		"venue": "Brooklyn Art Haus",
+		"time": "7:00pm"
 	},
 	{
 		"date": "November 21, 2026",
 		"ticketUrl": "https://theannoyance.thundertix.com/events/267985",
 		"cityColor": "#5BA9D6",
-		"city": "Chicago"
+		"city": "Chicago",
+		"venue": "The Annoyance",
+		"time": "8:00pm"
 	}
 ]
