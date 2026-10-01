@@ -21,7 +21,12 @@
 
 	let submitError = $state<string | null>(null);
 
-	const { form: formData, enhance, errors, constraints } = superForm(data.form, {
+	const {
+		form: formData,
+		enhance,
+		errors,
+		constraints
+	} = superForm(data.form, {
 		validators: zod4Client(bookingSchema),
 		onResult: (event) => {
 			const result = event.result as { submitError?: string | null } | undefined;
@@ -75,12 +80,15 @@
 			</h2>
 			<p class="m-0 mb-3 text-sm leading-relaxed text-white/70">
 				A direct rip off of Jubilee: Surrounded's format. Watch a Jubilee video or old Jamboree
-				clips if you haven't seen one before — I recommend Charlie Kirk's episode from the real
+				clips if you haven't seen one before. I recommend Charlie Kirk's episode from the real
 				Jubilee heavily.
 			</p>
 			<p class="m-0 text-sm leading-relaxed text-white/70">
-				8 people from the circle will be the "defenders" (the Charlie Kirk seat) who have a hot
-				take, phrased as a claim, that everyone else in the circle is able to "attack".
+				7 people from the circle will be the "defenders" (the Charlie Kirk seat) who have a hot
+				take, phrased as a claim, that everyone else in the circle is able to "attack". Attackers
+				will take turns running to the middle, first person to the seat gets to debate. The audience
+				and remaining circle have red flags. If half of the flags go up, the attacker goes back to
+				the circle and we go again. Rinse and repeat for 7 minutes!
 			</p>
 
 			<h2 class="m-0 mt-4 mb-1 text-xs font-extrabold tracking-[2px] text-white/90 uppercase">
