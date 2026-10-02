@@ -7,11 +7,7 @@
 
 <svelte:head>
 	<title>Jamboree Media</title>
-	{#each metaTags({
-		title: 'Jamboree Media — Live Comedy Show',
-		description:
-			'Jamboree is a live comedy show built on hot takes: twenty-plus comedians in a circle, one defending a claim, everyone else attacking. Get tickets and book your spot.'
-	}) as { attr, key, content }}
+	{#each metaTags( { title: 'Jamboree Media', description: 'A live comedy show keeping free speech alive.' } ) as { attr, key, content }}
 		<meta {...{ [attr]: key, content }} />
 	{/each}
 </svelte:head>
