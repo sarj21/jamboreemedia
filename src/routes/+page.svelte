@@ -1,11 +1,19 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
+	import { metaTags } from '$lib/seo';
 
 	let { data }: PageProps = $props();
 </script>
 
 <svelte:head>
 	<title>Jamboree Media</title>
+	{#each metaTags({
+		title: 'Jamboree Media — Live Comedy Show',
+		description:
+			'Jamboree is a live comedy show built on hot takes: twenty-plus comedians in a circle, one defending a claim, everyone else attacking. Get tickets and book your spot.'
+	}) as { attr, key, content }}
+		<meta {...{ [attr]: key, content }} />
+	{/each}
 </svelte:head>
 
 <main class="page flex h-dvh w-full flex-col overflow-hidden px-[35px] py-[25px] text-white">

@@ -1,9 +1,17 @@
 <script lang="ts">
+	import { metaTags } from '$lib/seo';
+
 	let { data }: { data: { date: string } } = $props();
 </script>
 
 <svelte:head>
-	<title>Booking Received - Jamboree Media</title>
+	<title>Booking received — Jamboree Media</title>
+	{#each metaTags({
+		title: 'Booking received — Jamboree Media',
+		description: 'Your Jamboree booking is in. We will be in touch with the details.'
+	}) as { attr, key, content }}
+		<meta {...{ [attr]: key, content }} />
+	{/each}
 </svelte:head>
 
 <main

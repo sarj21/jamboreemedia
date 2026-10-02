@@ -2,6 +2,7 @@
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
 	import { bookingSchema } from '$lib/schema';
+	import { metaTags } from '$lib/seo';
 
 	type BookingPageData = {
 		form: any;
@@ -36,7 +37,13 @@
 </script>
 
 <svelte:head>
-	<title>Booking - Jamboree Media</title>
+	<title>Book a spot — Jamboree Media</title>
+	{#each metaTags({
+		title: `Book your spot — Jamboree (${data.date})`,
+		description: `Sign up for the Jamboree comedy show on ${data.date} in ${data.city}. Submit your details and an optional hot take to defend, then join the circle and attack everyone else's claims.`
+	}) as { attr, key, content }}
+		<meta {...{ [attr]: key, content }} />
+	{/each}
 </svelte:head>
 
 <main
