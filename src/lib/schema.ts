@@ -22,3 +22,11 @@ export const bookingSchema = z
 	});
 
 export type BookingSchema = z.infer<typeof bookingSchema>;
+
+export const applicationSchema = z.object({
+	name: z.string().min(1, 'Name is required'),
+	instagram: z.string().min(1, 'Instagram handle is required'),
+	notes: z.string().optional()
+});
+
+export type ApplicationSchema = z.infer<typeof applicationSchema>;

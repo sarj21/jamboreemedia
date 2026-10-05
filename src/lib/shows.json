@@ -22,8 +22,9 @@
 		"ticketUrl": "",
 		"cityColor": "#5FB8B2",
 		"city": "New York",
-		"venue": "The Annoyance",
+		"venue": "Brooklyn Art Haus",
 		"time": "7:00pm",
-		"live": false
+		"live": false,
+		"acceptingBookings": true
 	}
 ]

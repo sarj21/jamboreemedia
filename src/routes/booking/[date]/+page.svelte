@@ -1,38 +1,16 @@
 <script lang="ts">
 	import { superForm } from 'sveltekit-superforms';
 	import { zod4Client } from 'sveltekit-superforms/adapters';
+	import type { ActionData, PageData } from './$types';
 	import { bookingSchema } from '$lib/schema';
 	import { metaTags } from '$lib/seo';
 
-	type BookingPageData = {
-		form: any;
-		date: string;
-		slug: string;
-		city: string;
-		cityColor: string;
-		venue: string;
-		doorsTime: string;
-		callTime: string;
-		stageTime: string;
-		doneByTime: string;
-		dueBy: string;
-	};
+	let { data, form }: { data: PageData; form: ActionData } = $props();
 
-	let { data }: { data: BookingPageData } = $props();
-
-	let submitError = $state<string | null>(null);
-
-	const {
-		form: formData,
-		enhance,
-		errors,
-		constraints
-	} = superForm(data.form, {
-		validators: zod4Client(bookingSchema),
-		onResult: (event) => {
-			const result = event.result as { submitError?: string | null } | undefined;
-			submitError = result?.submitError ?? null;
-		}
+	// Read the error off the action result so it survives a no-JS submit,
+	// where onResult never fires. applyAction keeps this in sync when hydrated.
+	const { form: formData, enhance, errors, constraints } = superForm(data.form, {
+		validators: zod4Client(bookingSchema)
 	});
 </script>
 
@@ -276,11 +254,11 @@
 			{/if}
 
 			<!-- Submit error -->
-			{#if submitError}
+			{#if form?.submitError}
 				<p
 					class="m-0 border-2 border-[var(--red)] bg-[var(--red)]/20 px-4 py-3 text-sm font-semibold text-white"
 				>
-					{submitError}
+					{form?.submitError}
 				</p>
 			{/if}
 

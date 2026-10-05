@@ -13,6 +13,13 @@ export type Show = {
 	 * regardless. Omitted means live, so existing entries keep showing.
 	 */
 	live?: boolean;
+	/**
+	 * Whether this show is currently taking interest/applications. Drives which
+	 * shows appear at /booking/apply. Omitted means not accepting.
+	 */
+	acceptingBookings?: boolean;
+	/** Per-show notes for applicants, e.g. parking or accessibility notes. */
+	bookingNotes?: string;
 };
 
 export type ListedShow = Show & {
@@ -27,6 +34,21 @@ export function parseShowDate(date: string): number {
 /** A show is live unless explicitly marked otherwise. */
 export function isLive(show: Show): boolean {
 	return show.live !== false;
+}
+
+/** Whether a show is currently open for applications. Opt-in. */
+export function isAcceptingBookings(show: Show): boolean {
+	return show.acceptingBookings === true;
+}
+
+/** Upcoming shows currently taking applications, soonest first. */
+export function listAcceptingShows(shows: Show[], now = new Date()): ListedShow[] {
+	const startOfToday = new Date(now);
+	startOfToday.setHours(0, 0, 0, 0);
+	return listShows(
+		shows.filter((s) => isAcceptingBookings(s) && parseShowDate(s.date) >= startOfToday.getTime()),
+		now
+	);
 }
 
 /**
