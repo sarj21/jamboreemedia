@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageProps } from './$types';
-	import { showSlug } from '$lib/show';
+	import { showSlug, isLive } from '$lib/show';
 	import shows from '$lib/shows.json';
 	import type { Show } from '$lib/show';
 
@@ -26,7 +26,9 @@
 			slug: showSlug(s.date),
 			label: s.city,
 			date: s.date,
-			color: s.cityColor
+			color: s.cityColor,
+			// Not advertised on the home page yet, but still bookable.
+			live: isLive(s)
 		}))
 	);
 
@@ -75,6 +77,9 @@
 					<span class="show-tab-dot" aria-hidden="true"></span>
 					<span class="show-tab-date">{show.date}</span>
 					<span class="show-tab-city">{show.label}</span>
+					{#if !show.live}
+						<span class="show-tab-flag">Not live</span>
+					{/if}
 				</a>
 			{/each}
 		</nav>
@@ -175,5 +180,17 @@
 		letter-spacing: 1px;
 		text-transform: uppercase;
 		opacity: 0.6;
+	}
+
+	.show-tab-flag {
+		padding: 2px 6px;
+		background: rgba(255, 255, 255, 0.12);
+		color: inherit;
+		font-size: 9px;
+		line-height: 1;
+		font-weight: 800;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		opacity: 0.7;
 	}
 </style>

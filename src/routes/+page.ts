@@ -1,9 +1,11 @@
 import shows from '$lib/shows.json';
-import { listShows, type Show } from '$lib/show';
+import { listPublicShows, type Show } from '$lib/show';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = () => {
 	return {
-		shows: listShows(shows as Show[])
+		// Only live shows are advertised here. Every show is still bookable at
+		// /booking/<slug>, live or not.
+		shows: listPublicShows(shows as Show[])
 	};
 };

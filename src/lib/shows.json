@@ -5,7 +5,8 @@
 		"cityColor": "#5FB8B2",
 		"city": "New York",
 		"venue": "Brooklyn Art Haus",
-		"time": "7:00pm"
+		"time": "7:00pm",
+		"live": true
 	},
 	{
 		"date": "November 21, 2026",
@@ -13,6 +14,16 @@
 		"cityColor": "#5BA9D6",
 		"city": "Chicago",
 		"venue": "The Annoyance",
-		"time": "8:00pm"
+		"time": "8:00pm",
+		"live": true
+	},
+	{
+		"date": "December 2, 2026",
+		"ticketUrl": "",
+		"cityColor": "#5FB8B2",
+		"city": "New York",
+		"venue": "The Annoyance",
+		"time": "7:00pm",
+		"live": false
 	}
 ]

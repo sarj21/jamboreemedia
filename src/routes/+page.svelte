@@ -56,7 +56,7 @@
 	<section
 		class="relative z-[3] mt-[clamp(28px,4vh,48px)] ml-auto flex w-full max-w-[850px] flex-col gap-[clamp(20px,3vh,40px)]"
 	>
-		{#each data.shows as show (show.date + show.ticketUrl)}
+		{#each data.shows as show (show.date + (show.ticketUrl ?? ''))}
 			<div>
 				<div class="mb-3 flex flex-wrap items-center gap-2">
 					{#if show.isNext}
@@ -74,12 +74,13 @@
 					{show.date}
 				</h2>
 
-				<a
-					href={show.ticketUrl}
-					target="_blank"
-					rel="noopener noreferrer"
-					class="group relative mt-[14px] flex w-full items-center justify-between overflow-hidden bg-[var(--yellow)] px-6 py-[13px] ..."
-				>
+				{#if show.ticketUrl}
+					<a
+						href={show.ticketUrl}
+						target="_blank"
+						rel="noopener noreferrer"
+						class="group relative mt-[14px] flex w-full items-center justify-between overflow-hidden bg-[var(--yellow)] px-6 py-[13px] ..."
+					>
 					<span
 						class="absolute inset-0 translate-y-full bg-[var(--red)] transition-transform duration-250 group-hover:translate-y-0"
 					></span>
@@ -95,7 +96,12 @@
 					>
 						→
 					</span>
-				</a>
+					</a>
+			{:else}
+					<p class="m-0 mt-[14px] text-lg font-extrabold tracking-[2px] text-white/50 uppercase">
+						Tickets coming soon
+					</p>
+			{/if}
 			</div>
 		{/each}
 	</section>

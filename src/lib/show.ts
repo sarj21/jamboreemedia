@@ -2,11 +2,17 @@ export type Show = {
 	date: string;
 	city: string;
 	cityColor: string;
-	ticketUrl: string;
+	/** Optional: a show being booked but not yet on sale may omit this. */
+	ticketUrl?: string;
 	/** Venue name, e.g. "The Annoyance Theatre". */
 	venue: string;
 	/** Doors time, e.g. "8:00pm". Call/stage/done times derive from this. */
 	time: string;
+	/**
+	 * Whether to advertise this show on the home page. Booking always works
+	 * regardless. Omitted means live, so existing entries keep showing.
+	 */
+	live?: boolean;
 };
 
 export type ListedShow = Show & {
@@ -16,6 +22,24 @@ export type ListedShow = Show & {
 export function parseShowDate(date: string): number {
 	const timestamp = Date.parse(date);
 	return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
+}
+
+/** A show is live unless explicitly marked otherwise. */
+export function isLive(show: Show): boolean {
+	return show.live !== false;
+}
+
+/**
+ * Shows to advertise on the home page: live ones only, and never past.
+ * Booking stays available for every show, live or not.
+ */
+export function listPublicShows(shows: Show[], now = new Date()): ListedShow[] {
+	const startOfToday = new Date(now);
+	startOfToday.setHours(0, 0, 0, 0);
+	return listShows(
+		shows.filter((s) => isLive(s) && parseShowDate(s.date) >= startOfToday.getTime()),
+		now
+	);
 }
 
 export function listShows(shows: Show[], now = new Date()): ListedShow[] {
