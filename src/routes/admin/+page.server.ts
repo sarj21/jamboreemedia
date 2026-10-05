@@ -1,6 +1,6 @@
 import { redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { supabase } from '$lib/supabase';
+import { getSupabase } from '$lib/supabase';
 import { sessionCookie } from '$lib/admin';
 import shows from '$lib/shows.json';
 import { findShowBySlug, showSlug, toISODate, type Show } from '$lib/show';
@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ url }) => {
 	const show = findShowBySlug(allShows, wanted);
 
 	// An unknown slug matches nothing rather than erroring.
-	const { data, error } = await supabase
+	const { data, error } = await getSupabase()
 		.from('bookings')
 		.select('id,show_date,name,pronouns,payment_handle,wants_to_defend,claim_description,created_at')
 		.eq('show_date', show ? toISODate(show.date) : '1970-01-01')

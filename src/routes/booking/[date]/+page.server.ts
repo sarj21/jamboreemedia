@@ -3,7 +3,7 @@ import type { PageServerLoad, Actions } from './$types';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { bookingSchema } from '$lib/schema';
-import { supabase } from '$lib/supabase';
+import { getSupabase } from '$lib/supabase';
 import shows from '$lib/shows.json';
 import { findShowBySlug, showLogistics, toISODate, type Show } from '$lib/show';
 
@@ -45,7 +45,9 @@ export const actions: Actions = {
 
     const { name, pronouns, paymentHandle, wantsToDefend, claimDescription } = form.data;
 
-    const { error: insertError } = await supabase.from('bookings').insert({
+    const { error: insertError } = await getSupabase()
+		.from('bookings')
+		.insert({
       show_date: toISODate(show.date),
       name,
       pronouns,
