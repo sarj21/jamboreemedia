@@ -155,6 +155,28 @@
 				{/if}
 			</div>
 
+			<!-- Disciplines (optional) -->
+			<div class="flex flex-col gap-2">
+				<div class="flex items-center gap-2">
+					<label
+						for="disciplines"
+						class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase"
+					>
+						Disciplines
+					</label>
+					<span class="optional-tag">Optional</span>
+				</div>
+				<input
+					type="text"
+					id="disciplines"
+					name="disciplines"
+					bind:value={$formData.disciplines}
+					{...$constraints.disciplines}
+					placeholder="What do you do? standup, sketch, clown, improv, other?"
+					class="w-full border-2 border-white/20 bg-black/30 px-4 py-3 text-lg text-white placeholder-white/40 transition-colors outline-none focus:border-[var(--yellow)]"
+				/>
+			</div>
+
 			<!-- Defend a claim radio buttons -->
 			<div class="flex flex-col gap-3">
 				<span class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase">

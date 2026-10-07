@@ -59,6 +59,6 @@ export const actions: Actions = {
 			return { form, submitError: insertError.message };
 		}
 
-		redirect(303, `/booking/apply/${event.params.date}/success`);
+		redirect(303, `/apply/${event.params.date}/success`);
 	}
 };

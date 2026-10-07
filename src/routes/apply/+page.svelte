@@ -47,7 +47,7 @@
 		{:else}
 			{#each data.shows as show (show.slug)}
 				<a
-					href="/booking/apply/{show.slug}"
+					href="/apply/{show.slug}"
 					class="group flex flex-col gap-3 border-2 border-white/10 bg-white/5 p-5 no-underline transition-colors hover:border-white/30"
 				>
 					<div class="flex flex-wrap items-center gap-2">

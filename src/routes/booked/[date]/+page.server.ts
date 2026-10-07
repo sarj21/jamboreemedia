@@ -43,7 +43,7 @@ export const actions: Actions = {
       return { form, success: false, submitError: null };
     }
 
-    const { name, pronouns, paymentHandle, wantsToDefend, claimDescription } = form.data;
+    const { name, pronouns, paymentHandle, disciplines, wantsToDefend, claimDescription } = form.data;
 
     const { error: insertError } = await getSupabase()
 		.from('bookings')
@@ -52,6 +52,7 @@ export const actions: Actions = {
       name,
       pronouns,
       payment_handle: paymentHandle,
+      disciplines: disciplines?.trim() ? disciplines : null,
       wants_to_defend: wantsToDefend,
       claim_description: wantsToDefend ? claimDescription : null
     });
@@ -61,6 +62,6 @@ export const actions: Actions = {
       return { form, success: false, submitError: insertError.message };
     }
 
-    redirect(303, `/booking/${event.params.date}/success`);
+    redirect(303, `/booked/${event.params.date}/success`);
   }
 };

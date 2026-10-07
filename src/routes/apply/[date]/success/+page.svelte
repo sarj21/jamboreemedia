@@ -23,7 +23,7 @@
 		</p>
 
 		<a
-			href="/booking/apply"
+			href="/apply"
 			class="text-sm font-bold tracking-[2px] text-white/70 uppercase transition-colors hover:text-[var(--yellow)]"
 		>
 			Apply to another show

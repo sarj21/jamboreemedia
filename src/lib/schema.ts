@@ -5,6 +5,7 @@ export const bookingSchema = z
 		name: z.string().min(1, 'Name is required'),
 		pronouns: z.string().min(1, 'Pronouns are required'),
 		paymentHandle: z.string().min(1, 'Payment handle is required'),
+		disciplines: z.string().optional(),
 		// Radios POST as "true"/"false" strings, but Svelte bind:group keeps booleans client-side.
 		wantsToDefend: z
 			.union([z.boolean(), z.enum(['true', 'false'])])

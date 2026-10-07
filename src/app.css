@@ -59,6 +59,21 @@ body {
 	font-family: 'GR Read One', sans-serif;
 }
 
+/* Marks a form field that can be left blank. */
+.optional-tag {
+	display: inline-flex;
+	align-items: center;
+	height: 18px;
+	padding: 0 7px;
+	border: 1px solid rgba(255, 255, 255, 0.25);
+	color: rgba(255, 255, 255, 0.55);
+	font-size: 9px;
+	line-height: 1;
+	font-weight: 800;
+	letter-spacing: 2px;
+	text-transform: uppercase;
+}
+
 @media (max-width: 700px) {
 	body {
 		background-position: center top;

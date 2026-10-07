@@ -15,7 +15,7 @@ export type Show = {
 	live?: boolean;
 	/**
 	 * Whether this show is currently taking interest/applications. Drives which
-	 * shows appear at /booking/apply. Omitted means not accepting.
+	 * shows appear at /apply. Omitted means not accepting.
 	 */
 	acceptingBookings?: boolean;
 	/** Per-show notes for applicants, e.g. parking or accessibility notes. */

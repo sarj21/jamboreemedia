@@ -27,7 +27,7 @@
 >
 	<header class="relative z-[2] w-full">
 		<a
-			href="/booking/apply"
+			href="/apply"
 			class="mb-6 inline-flex items-center gap-2 text-sm font-bold tracking-[2px] text-white/70 uppercase transition-colors hover:text-[var(--yellow)]"
 		>
 			<span aria-hidden="true">&larr;</span> All shows
@@ -95,9 +95,15 @@
 			</div>
 
 			<div class="flex flex-col gap-2">
-				<label for="notes" class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase">
-					Anything else we should know?
-				</label>
+				<div class="flex items-center gap-2">
+					<label
+						for="notes"
+						class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase"
+					>
+						Anything else we should know?
+					</label>
+					<span class="optional-tag">Optional</span>
+				</div>
 				<textarea
 					id="notes"
 					name="notes"
