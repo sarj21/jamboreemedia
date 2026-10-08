@@ -16,8 +16,13 @@ export type Application = {
 	show_date: string;
 	name: string;
 	instagram: string;
+	disciplines: string | null;
 	notes: string | null;
 	/** Marked in admin as someone to keep; these pin to the top of the list. */
 	keep: boolean;
+	/** Triage set in admin: yes / no / maybe. */
+	status: 'yes' | 'no' | 'maybe' | null;
+	/** Triage set in admin: big name / small name. */
+	tier: 'big' | 'small' | null;
 	created_at: string;
 };

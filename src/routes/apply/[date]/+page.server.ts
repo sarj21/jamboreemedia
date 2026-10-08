@@ -45,12 +45,13 @@ export const actions: Actions = {
 			return { form, submitError: null };
 		}
 
-		const { name, instagram, notes } = form.data;
+		const { name, instagram, disciplines, notes } = form.data;
 
 		const { error: insertError } = await getSupabase().from('applications').insert({
 			show_date: toISODate(show.date),
 			name,
 			instagram,
+			disciplines: disciplines?.trim() ? disciplines : null,
 			notes: notes?.trim() ? notes : null
 		});
 

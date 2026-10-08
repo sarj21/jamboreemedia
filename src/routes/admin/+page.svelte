@@ -28,7 +28,7 @@
 	const loadError = $derived(data.loadError as string | null);
 	const tableMissing = $derived(data.tableMissing as boolean);
 	const selected = $derived(data.selected as string);
-	const tab = $derived(data.tab as 'submissions' | 'applications');
+	const tab = $derived(data.tab as 'bookings' | 'applications');
 
 	const showMeta = $derived(
 		(shows as Show[]).map((s) => ({
@@ -42,10 +42,29 @@
 	);
 
 	const defenders = $derived(bookings.filter((b) => b.wants_to_defend));
-	const total = $derived(bookings.length);
 
 	const kept = $derived(applications.filter((a) => a.keep));
 	const rest = $derived(applications.filter((a) => !a.keep));
+
+	const page = $derived(data.page as number);
+	const total = $derived(data.total as number);
+	const pageSize = $derived(data.pageSize as number);
+	const pageCount = $derived(Math.max(1, Math.ceil(total / pageSize)));
+	const rangeStart = $derived(total === 0 ? 0 : (page - 1) * pageSize + 1);
+	const rangeEnd = $derived(Math.min(page * pageSize, total));
+
+	/** Short absolute timestamp, e.g. "Oct 15, 7:42 PM". */
+	function submittedAt(iso: string): string {
+		const d = new Date(iso);
+		if (Number.isNaN(d.getTime())) return '';
+		const day = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+		const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+		return `${day}, ${time}`;
+	}
+
+	function pageUrl(next: number): string {
+		return `/admin?show=${selected}&tab=applications&page=${next}`;
+	}
 
 </script>
 
@@ -60,7 +79,7 @@
 				<h1
 					class="brand-title m-0 text-[clamp(32px,7vw,72px)] leading-[0.85] font-normal tracking-[-0.045em] uppercase text-shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
 				>
-					{#if tab === 'applications'}Applications{:else}Submissions{/if}
+					{tab === 'applications' ? 'Applications' : 'Bookings'}
 				</h1>
 				<p class="mt-2 mb-0 text-sm text-white/70">
 					{#if tab === 'applications'}
@@ -104,25 +123,25 @@
 
 		<nav class="flex flex-wrap gap-2" aria-label="View">
 			<a
-				href="/admin?show={selected}&tab=submissions"
-				aria-current={tab === 'submissions' ? 'true' : undefined}
-				class="view-tab {tab === 'submissions' ? 'view-tab-active' : ''}"
-			>
-				Submissions
-			</a>
-			<a
 				href="/admin?show={selected}&tab=applications"
 				aria-current={tab === 'applications' ? 'true' : undefined}
 				class="view-tab {tab === 'applications' ? 'view-tab-active' : ''}"
 			>
 				Applications
 			</a>
+			<a
+				href="/admin?show={selected}&tab=bookings"
+				aria-current={tab === 'bookings' ? 'true' : undefined}
+				class="view-tab {tab === 'bookings' ? 'view-tab-active' : ''}"
+			>
+				Bookings
+			</a>
 		</nav>
 	</header>
 
 	{#snippet row(a: Application, isKept: boolean)}
 		<li
-			class="flex items-start gap-3 border-2 p-4 {isKept
+			class="flex flex-wrap items-start gap-x-3 gap-y-2 border-2 px-3 py-2 sm:flex-nowrap {isKept
 				? 'border-[var(--yellow)] bg-white/10'
 				: 'border-white/10 bg-white/5'}"
 		>
@@ -143,11 +162,75 @@
 					&#10003;
 				</button>
 			</form>
+
+			<!-- Triage: yes / no / maybe -->
+			<form method="POST" action="?/status" use:enhance class="flex shrink-0 gap-1">
+				<input type="hidden" name="id" value={a.id} />
+				<input type="hidden" name="show" value={selected} />
+				{#each [{ v: 'yes', t: 'Y' }, { v: 'no', t: 'N' }, { v: 'maybe', t: '?' }] as opt (opt.v)}
+					<button
+						type="submit"
+						name="status"
+						value={opt.v}
+						aria-pressed={a.status === opt.v}
+						aria-label={opt.v === 'maybe' ? 'Maybe' : opt.v === 'yes' ? 'Yes' : 'No'}
+						class="tri h-6 w-6 text-[11px] font-extrabold uppercase {a.status === opt.v
+							? opt.v === 'yes'
+								? 'tri-on tri-yes'
+								: opt.v === 'no'
+									? 'tri-on tri-no'
+									: 'tri-on tri-maybe'
+							: ''}"
+					>
+						{opt.t}
+					</button>
+				{/each}
+			</form>
+
+			<!-- Triage: big / small name -->
+			<div class="flex shrink-0 items-center gap-2">
+				<form method="POST" action="?/tier" use:enhance class="flex gap-1">
+					<input type="hidden" name="id" value={a.id} />
+					<input type="hidden" name="show" value={selected} />
+					<button
+						type="submit"
+						name="tier"
+						value="big"
+						aria-pressed={a.tier === 'big'}
+						aria-label="Big name"
+						class="tri tri-labelled {a.tier === 'big' ? 'tri-on tri-big' : ''}">👑 Big</button
+					>
+					<button
+						type="submit"
+						name="tier"
+						value="small"
+						aria-pressed={a.tier === 'small'}
+						aria-label="Small name"
+						class="tri tri-labelled {a.tier === 'small' ? 'tri-on tri-small' : ''}">🐭 Small</button
+					>
+				</form>
+			</div>
+
 			<div class="min-w-0 flex-1">
 				<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
 					<span class="text-xl font-extrabold tracking-[-0.02em] uppercase">{a.name}</span>
 				</div>
-				<div class="mt-1 text-sm text-white/60">{a.instagram}</div>
+				<div class="mt-1 text-sm">
+					<a
+						href="https://instagram.com/{a.instagram.replace(/^@/, '')}"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-white/60 underline decoration-white/25 underline-offset-2 transition-colors hover:text-[var(--yellow)]"
+					>
+						{a.instagram}
+					</a>
+				</div>
+
+				{#if a.disciplines}
+					<div class="mt-0.5 text-xs text-white/40">{a.disciplines}</div>
+
+				<div class="mt-0.5 text-[11px] text-white/35">{submittedAt(a.created_at)}</div>
+				{/if}
 				{#if a.notes}
 					<div
 						class="mt-3 border-l-4 border-[var(--yellow)] bg-black/20 p-3 text-sm leading-relaxed whitespace-pre-wrap"
@@ -177,6 +260,7 @@
 				<ul class="mt-2 mb-0 list-disc pl-5 text-sm leading-relaxed text-white/70">
 					<li><code class="text-white">supabase/migrations/create_applications_table.sql</code></li>
 					<li><code class="text-white">supabase/migrations/applications_keep_and_manual.sql</code></li>
+					<li><code class="text-white">supabase/migrations/applications_disciplines.sql</code></li>
 				</ul>
 			</div>
 		{:else if tab === 'applications'}
@@ -304,44 +388,64 @@
 					{/if}
 				{/if}
 			</div>
-		{:else if bookings.length === 0}
+
+			<!-- Pagination -->
+			{#if pageCount > 1}
+				<nav class="mt-3 flex items-center justify-between gap-3" aria-label="Pagination">
+					{#if page > 1}
+						<a href={pageUrl(page - 1)} class="page-btn">&larr; Prev</a>
+					{:else}
+						<span class="page-btn opacity-30">&larr; Prev</span>
+					{/if}
+
+					<span class="text-xs text-white/60">{rangeStart}&ndash;{rangeEnd} of {total}</span>
+
+					{#if page < pageCount}
+						<a href={pageUrl(page + 1)} class="page-btn">Next &rarr;</a>
+					{:else}
+						<span class="page-btn opacity-30">Next &rarr;</span>
+					{/if}
+				</nav>
+			{/if}
 		{:else if bookings.length === 0}
 			<p class="m-0 border-l-4 border-[var(--yellow)] bg-white/5 px-4 py-6 text-sm text-white/70">
 				No responses yet.
 			</p>
 		{:else}
-			<ul class="m-0 flex list-none flex-col gap-3 p-0">
+			<ul class="m-0 flex list-none flex-col gap-1.5 p-0">
 				{#each bookings as b (b.id)}
-					<li class="border-2 border-white/10 bg-white/5 p-4">
-						<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-							<span class="text-xl font-extrabold tracking-[-0.02em] uppercase">{b.name}</span>
-							{#if b.pronouns}
-								<span class="text-sm text-white/60">({b.pronouns})</span>
-							{/if}
-						</div>
+					<li class="border-2 border-white/10 bg-white/5 px-3 py-2">
+						<div class="flex flex-wrap items-start gap-x-3 gap-y-2 sm:flex-nowrap">
+											<div class="min-w-0 flex-1">
+								<div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+									<span class="text-[15px] leading-tight font-extrabold tracking-[-0.02em] uppercase">
+										{b.name}
+									</span>
+									{#if b.pronouns}
+										<span class="text-xs text-white/50">({b.pronouns})</span>
+									{/if}
+									<span class="text-xs text-white/50">{b.payment_handle}</span>
+								</div>
 
-						<div class="mt-1 text-sm text-white/60">
-							{b.payment_handle}
-						</div>
+								<div class="mt-0.5 text-[11px] text-white/35">
+									{submittedAt(b.created_at)}
+								</div>
 
-						{#if b.wants_to_defend}
-							<div
-								class="mt-3 border-l-4 border-[var(--yellow)] bg-black/20 p-3 text-sm leading-relaxed whitespace-pre-wrap"
-							>
-								<span
-									class="mb-1 block text-[10px] font-extrabold tracking-[2px] text-[var(--yellow)] uppercase"
-									>Claims</span
-								>
-								{b.claim_description || '—'}
+								{#if b.wants_to_defend}
+									<div class="mt-1 border-l-2 border-[var(--yellow)] pl-2 text-[13px] leading-snug whitespace-pre-wrap text-white/80">
+										{b.claim_description || '—'}
+									</div>
+								{:else}
+									<div class="mt-1 text-[10px] font-bold tracking-[2px] text-white/25 uppercase">
+										Not defending
+									</div>
+								{/if}
 							</div>
-						{:else}
-							<div class="mt-3 text-xs font-bold tracking-[2px] text-white/35 uppercase">
-								Not defending
-							</div>
-						{/if}
+						</div>
 					</li>
 				{/each}
 			</ul>
+
 		{/if}
 	</section>
 </main>
@@ -405,6 +509,82 @@
 		letter-spacing: 1px;
 		text-transform: uppercase;
 		opacity: 0.7;
+	}
+
+	/* Triage buttons: small square toggles on each row */
+	.tri {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		color: rgba(255, 255, 255, 0.35);
+		background: transparent;
+		line-height: 1;
+		transition:
+			border-color 120ms ease,
+			color 120ms ease,
+			background 120ms ease;
+	}
+
+	/* Wider variant carrying a text label so Big/Small read without a tooltip. */
+	.tri-labelled {
+		height: 24px;
+		padding: 0 7px;
+		gap: 4px;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		white-space: nowrap;
+	}
+
+	.tri:hover {
+		border-color: rgba(255, 255, 255, 0.5);
+		color: rgba(255, 255, 255, 0.8);
+	}
+
+	.tri-on {
+		color: var(--black);
+		border-color: transparent;
+	}
+
+	.tri-yes {
+		background: #7dc36e;
+	}
+
+	.tri-no {
+		background: var(--red);
+	}
+
+	.tri-maybe {
+		background: var(--yellow);
+	}
+
+	.tri-big {
+		background: var(--yellow);
+	}
+
+	.tri-small {
+		background: rgba(255, 255, 255, 0.75);
+	}
+
+	.page-btn {
+		display: inline-flex;
+		align-items: center;
+		height: 30px;
+		padding: 0 12px;
+		border: 2px solid rgba(255, 255, 255, 0.18);
+		color: rgba(255, 255, 255, 0.7);
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 2px;
+		text-transform: uppercase;
+		text-decoration: none;
+	}
+
+	.page-btn:hover {
+		border-color: var(--yellow);
+		color: var(--yellow);
 	}
 
 	.view-tab {

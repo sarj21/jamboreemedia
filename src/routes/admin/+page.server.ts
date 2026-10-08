@@ -6,114 +6,138 @@ import shows from '$lib/shows.json';
 import { findShowBySlug, showSlug, toISODate, type Show } from '$lib/show';
 import type { Application, Booking } from '$lib/rows';
 
-type Tab = 'submissions' | 'applications';
+const PAGE_SIZE = 25;
+
+/** Admin tabs are named after the tables they read: bookings | applications. */
+type Tab = 'bookings' | 'applications';
 
 function isTab(value: string | null): value is Tab {
-	return value === 'submissions' || value === 'applications';
+	return value === 'bookings' || value === 'applications';
 }
 
-/** PostgREST reports an unknown relation as PGRST205. */
-function isMissingColumn(error: { code?: string; message?: string } | null): boolean {
-	if (error?.code === 'PGRST205') return true;
-	// The `keep` column is added by a later migration; PostgREST reports a
-	// missing column as a Postgres 42703 wrapped in an error object.
-	return error?.code === '42703';
+/** PostgREST reports an unknown relation/column as PGRST205 / 42703. */
+function isMissingColumn(error: { code?: string } | null): boolean {
+	return error?.code === 'PGRST205' || error?.code === '42703';
 }
 
 const empty = {
 	bookings: [] as Booking[],
 	applications: [] as Application[],
 	loadError: null as string | null,
-	tableMissing: false
+	tableMissing: false,
+	page: 1,
+	total: 0,
+	pageSize: PAGE_SIZE
 };
 
 /**
  * Resolve which show a request refers to.
  *
- * Form actions post to `?/action`, which drops the page's query string, so the
- * slug is carried in a hidden field. The query string is only a fallback.
+ * Form actions post to `?/action`, which drops the query string, so the slug is
+ * carried in a hidden field. The query string is only a fallback.
  */
-function resolveShowSlug(url: URL, form: FormData | null): string {
+function resolveShow(url: URL, form: FormData | null): {
+	slug: string;
+	show: Show | undefined;
+} {
 	const allShows = shows as Show[];
 	const posted = form?.get('show');
 	const slug =
 		typeof posted === 'string' && posted
 			? posted
 			: (url.searchParams.get('show') ?? showSlug(allShows[0].date));
-	return slug;
+	return { slug, show: findShowBySlug(allShows, slug) };
 }
 
-function resolveShow(url: URL, form: FormData | null = null): {
-	slug: string;
-	show: Show | undefined;
-} {
-	const slug = resolveShowSlug(url, form);
-	return { slug, show: findShowBySlug(shows as Show[], slug) };
+function clampPage(raw: string | null): number {
+	const n = Number(raw);
+	return Number.isInteger(n) && n > 0 ? n : 1;
 }
 
 export const load: PageServerLoad = async ({ url }) => {
-	const { slug, show } = resolveShow(url);
+	const { slug, show } = resolveShow(url, null);
 
 	const tabParam = url.searchParams.get('tab');
-	const tab: Tab = isTab(tabParam) ? tabParam : 'submissions';
+	const tab: Tab = isTab(tabParam) ? tabParam : 'applications';
 
 	// An unknown slug matches nothing rather than erroring.
 	const showDate = show ? toISODate(show.date) : '1970-01-01';
 
-	// Only query the table the active tab needs, so one missing table can't
-	// break the other view.
-	if (tab === 'applications') {
+	const APPLIC_COLUMNS =
+		'id,show_date,name,instagram,disciplines,notes,keep,status,tier,created_at';
+
+	if (tab === 'bookings') {
 		const { data, error } = await getSupabase()
-			.from('applications')
-			.select('id,show_date,name,instagram,notes,keep,created_at')
+			.from('bookings')
+			.select('id,show_date,name,pronouns,payment_handle,wants_to_defend,claim_description,created_at')
 			.eq('show_date', showDate)
-			// Kept applications first, then oldest first within each group.
-			.order('keep', { ascending: false })
 			.order('created_at', { ascending: true });
 
 		if (error) {
-			if (!isMissingColumn(error)) {
-				console.error('applications select failed:', error);
-			}
-			return {
-				...empty,
-				tab,
-				selected: slug,
-				loadError: isMissingColumn(error) ? null : error.message,
-				tableMissing: isMissingColumn(error)
-			};
+			console.error('bookings select failed:', error);
+			return { ...empty, tab, selected: slug, loadError: error.message };
 		}
+
+		const bookings = (data ?? []) as Booking[];
 
 		return {
 			...empty,
 			tab,
 			selected: slug,
-			applications: (data ?? []) as Application[],
-			tableMissing: false
+			bookings,
+			// The header reads total for the bookings count; this tab isn't paginated.
+			total: bookings.length
 		};
 	}
 
-	const { data, error } = await getSupabase()
-		.from('bookings')
-		.select('id,show_date,name,pronouns,payment_handle,wants_to_defend,claim_description,created_at')
+	// Applications: paginated, kept first.
+	const requestedPage = clampPage(url.searchParams.get('page'));
+
+	const { data, error, count } = await getSupabase()
+		.from('applications')
+		.select(APPLIC_COLUMNS, { count: 'exact' })
 		.eq('show_date', showDate)
-		.order('created_at', { ascending: true });
+		.order('keep', { ascending: false })
+		.order('created_at', { ascending: true })
+		.range((requestedPage - 1) * PAGE_SIZE, requestedPage * PAGE_SIZE - 1);
 
 	if (error) {
-		console.error('bookings select failed:', error);
+		if (!isMissingColumn(error)) {
+			console.error('applications select failed:', error);
+		}
 		return {
 			...empty,
 			tab,
 			selected: slug,
-			loadError: error.message
+			loadError: isMissingColumn(error) ? null : error.message,
+			tableMissing: isMissingColumn(error)
 		};
+	}
+
+	const total = count ?? 0;
+	const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
+	const page = Math.min(requestedPage, pageCount);
+
+	// Past the end (stale link, or rows deleted): fall back to the last page.
+	if (page !== requestedPage) {
+		const { data: last } = await getSupabase()
+			.from('applications')
+			.select(APPLIC_COLUMNS)
+			.eq('show_date', showDate)
+			.order('keep', { ascending: false })
+			.order('created_at', { ascending: true })
+			.range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
+
+		return { ...empty, tab, selected: slug, applications: (last ?? []) as Application[], total, page };
 	}
 
 	return {
 		...empty,
 		tab,
 		selected: slug,
-		bookings: (data ?? []) as Booking[]
+		applications: (data ?? []) as Application[],
+		total,
+		page
 	};
 };
 
@@ -149,13 +173,79 @@ export const actions: Actions = {
 			return fail(500, { actionError: updateError.message });
 		}
 
-		// PostgREST reports success even when the filters matched nothing, which
-		// previously made the checkbox silently revert.
+		// PostgREST reports success even when the filters matched nothing.
 		if (!data || data.length === 0) {
 			console.error(`keep: no application id=${id} for show ${show.date}`);
 			return fail(404, {
 				actionError: 'That application no longer exists. Reload to refresh the list.'
 			});
+		}
+
+		return { actionOk: true };
+	},
+
+	/** Set an application to yes / no / maybe. */
+	status: async ({ request, url }) => {
+		const form = await request.formData();
+		const { show } = resolveShow(url, form);
+		if (!show) error(404, 'Show not found');
+
+		const id = Number(form.get('id'));
+		const status = String(form.get('status') ?? '');
+
+		if (!Number.isInteger(id) || !['yes', 'no', 'maybe'].includes(status)) {
+			return fail(400, { actionError: 'Invalid status' });
+		}
+
+		const { data, error: updateError } = await getSupabase()
+			.from('applications')
+			.update({ status })
+			.eq('id', id)
+			.eq('show_date', toISODate(show.date))
+			.select('id');
+
+		if (updateError) {
+			console.error('applications status update failed:', updateError);
+			return fail(500, { actionError: updateError.message });
+		}
+
+		if (!data || data.length === 0) {
+			console.error(`status: no application id=${id} for show ${show.date}`);
+			return fail(404, { actionError: 'That application no longer exists.' });
+		}
+
+		return { actionOk: true };
+	},
+
+	/** Flag an application as a big or small name, or clear the tier. */
+	tier: async ({ request, url }) => {
+		const form = await request.formData();
+		const { show } = resolveShow(url, form);
+		if (!show) error(404, 'Show not found');
+
+		const id = Number(form.get('id'));
+		const raw = String(form.get('tier') ?? '');
+		const tier = raw === 'big' || raw === 'small' ? raw : null;
+
+		if (!Number.isInteger(id)) {
+			return fail(400, { actionError: 'Invalid application id' });
+		}
+
+		const { data, error: updateError } = await getSupabase()
+			.from('applications')
+			.update({ tier })
+			.eq('id', id)
+			.eq('show_date', toISODate(show.date))
+			.select('id');
+
+		if (updateError) {
+			console.error('applications tier update failed:', updateError);
+			return fail(500, { actionError: updateError.message });
+		}
+
+		if (!data || data.length === 0) {
+			console.error(`tier: no application id=${id} for show ${show.date}`);
+			return fail(404, { actionError: 'That application no longer exists.' });
 		}
 
 		return { actionOk: true };
@@ -169,6 +259,7 @@ export const actions: Actions = {
 
 		const name = String(form.get('name') ?? '').trim();
 		const instagram = String(form.get('instagram') ?? '').trim();
+		const disciplines = String(form.get('disciplines') ?? '').trim();
 
 		const errors: Record<string, string> = {};
 		if (!name) errors.name = 'Name is required';
@@ -181,6 +272,7 @@ export const actions: Actions = {
 			show_date: toISODate(show.date),
 			name,
 			instagram,
+			disciplines: disciplines || null,
 			notes: null,
 			keep: true
 		});
