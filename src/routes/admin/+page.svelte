@@ -211,7 +211,13 @@
 				</form>
 			</div>
 
-			<div class="min-w-0 flex-1">
+			<!--
+				The triage controls above are all shrink-0 and together fill a whole
+				phone-width row, which would squeeze this column down to a few dozen
+				px and wrap names character by character. Claim a full line on mobile
+				and only share the row with them from sm up.
+			-->
+			<div class="w-full min-w-0 sm:w-auto sm:flex-1">
 				<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
 					<span class="text-xl font-extrabold tracking-[-0.02em] uppercase">{a.name}</span>
 				</div>
@@ -228,9 +234,8 @@
 
 				{#if a.disciplines}
 					<div class="mt-0.5 text-xs text-white/40">{a.disciplines}</div>
-
-				<div class="mt-0.5 text-[11px] text-white/35">{submittedAt(a.created_at)}</div>
 				{/if}
+				<div class="mt-0.5 text-[11px] text-white/35">{submittedAt(a.created_at)}</div>
 				{#if a.notes}
 					<div
 						class="mt-3 border-l-4 border-[var(--yellow)] bg-black/20 p-3 text-sm leading-relaxed whitespace-pre-wrap"
