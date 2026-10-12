@@ -18,8 +18,8 @@
 		</h1>
 
 		<p class="m-0 text-xl text-white/80">
-			Your application for <strong class="text-[var(--yellow)]">{data.city}</strong> is in. We'll reach out
-			on Instagram if there's a spot.
+			Your application for <strong class="text-[var(--yellow)]">{data.city}</strong> is in. We'll reach
+			out on Instagram if there's a spot.
 		</p>
 
 		<a
