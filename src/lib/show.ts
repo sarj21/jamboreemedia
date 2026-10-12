@@ -1,5 +1,8 @@
 export type Show = {
+	/** Human readable, e.g. "December 2, 2026". */
 	date: string;
+	/** ISO key, e.g. "2026-12-02". The identity of the show. */
+	showDate?: string;
 	city: string;
 	cityColor: string;
 	/** Optional: a show being booked but not yet on sale may omit this. */
@@ -14,10 +17,10 @@ export type Show = {
 	 */
 	live?: boolean;
 	/**
-	 * Whether this show is currently taking interest/applications. Drives which
+	 * Whether this show is currently taking per-show applications. Drives which
 	 * shows appear at /apply. Omitted means not accepting.
 	 */
-	acceptingBookings?: boolean;
+	acceptingApplications?: boolean;
 	/** Per-show notes for applicants, e.g. parking or accessibility notes. */
 	bookingNotes?: string;
 };
@@ -26,7 +29,102 @@ export type ListedShow = Show & {
 	isNext: boolean;
 };
 
+/**
+ * A row of the `shows` table.
+ *
+ * `show_date` is the primary key and the identity of the show, so re-adding a
+ * date that was archived brings that show's appearances and bookings back.
+ */
+export type ShowRow = {
+	show_date: string;
+	city: string;
+	city_color: string;
+	venue: string;
+	time: string;
+	ticket_url: string | null;
+	live: boolean;
+	accepting_applications: boolean;
+	booking_notes: string | null;
+	archived: boolean;
+};
+
+/**
+ * Parse "yyyy-mm-dd" as a local calendar date.
+ *
+ * `Date.parse('2026-10-15')` treats the string as UTC midnight, which is the
+ * previous day in every timezone behind UTC. That silently shifted show dates,
+ * their slugs, and the show_date sent to the database, so ISO dates are always
+ * decomposed by hand.
+ */
+export function parseISODate(iso: string): Date | null {
+	const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso.trim());
+	if (!m) return null;
+	const [, y, mo, d] = m;
+	const date = new Date(Number(y), Number(mo) - 1, Number(d));
+	return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * The ISO key for a show, which is what the database is keyed on.
+ *
+ * Always prefer this over re-deriving a date from the display string, which
+ * loses a day to the timezone problem above.
+ */
+export function showKey(show: Show): string {
+	return show.showDate ?? toISODate(show.date);
+}
+
+/** "2026-12-02" -> "December 2, 2026", the form shown to people. */
+export function formatShowDate(iso: string): string {
+	const date = parseISODate(iso);
+	if (!date) {
+		const timestamp = Date.parse(iso);
+		if (Number.isNaN(timestamp)) return iso;
+		return new Date(timestamp).toLocaleDateString('en-US', {
+			month: 'long',
+			day: 'numeric',
+			year: 'numeric'
+		});
+	}
+	return date.toLocaleDateString('en-US', {
+		month: 'long',
+		day: 'numeric',
+		year: 'numeric'
+	});
+}
+
+/**
+ * Map a database row onto the shape the rest of the site uses.
+ *
+ * The public helpers below work on the human-readable `date` string, so the row
+ * is converted here rather than changing every call site. `showDate` carries the
+ * ISO key through for admin edits and comparisons.
+ */
+export function rowToShow(row: ShowRow): Show {
+	return {
+		date: formatShowDate(row.show_date),
+		showDate: row.show_date,
+		city: row.city,
+		cityColor: row.city_color,
+		venue: row.venue,
+		time: row.time,
+		ticketUrl: row.ticket_url ?? undefined,
+		live: row.live,
+		acceptingApplications: row.accepting_applications,
+		bookingNotes: row.booking_notes ?? undefined
+	};
+}
+
+/**
+ * Timestamp for a show date, for sorting and past/future checks.
+ *
+ * Handles both the ISO key and the display string. Unparseable dates sort last
+ * rather than first, so a typo cannot make a show look imminent.
+ */
 export function parseShowDate(date: string): number {
+	const iso = parseISODate(date);
+	if (iso) return iso.getTime();
+
 	const timestamp = Date.parse(date);
 	return Number.isNaN(timestamp) ? Number.POSITIVE_INFINITY : timestamp;
 }
@@ -37,8 +135,8 @@ export function isLive(show: Show): boolean {
 }
 
 /** Whether a show is currently open for applications. Opt-in. */
-export function isAcceptingBookings(show: Show): boolean {
-	return show.acceptingBookings === true;
+export function isAcceptingApplications(show: Show): boolean {
+	return show.acceptingApplications === true;
 }
 
 /** Upcoming shows currently taking applications, soonest first. */
@@ -46,7 +144,9 @@ export function listAcceptingShows(shows: Show[], now = new Date()): ListedShow[
 	const startOfToday = new Date(now);
 	startOfToday.setHours(0, 0, 0, 0);
 	return listShows(
-		shows.filter((s) => isAcceptingBookings(s) && parseShowDate(s.date) >= startOfToday.getTime()),
+		shows.filter(
+			(s) => isAcceptingApplications(s) && parseShowDate(s.date) >= startOfToday.getTime()
+		),
 		now
 	);
 }
@@ -107,23 +207,35 @@ const MONTHS_LONG = [
 	'December'
 ];
 
-/** Short URL slug for a show date, e.g. "November 21, 2026" -> "nov-21". */
+/** Short URL slug for a show date, e.g. "2026-11-21" -> "nov-21". */
 export function showSlug(date: string): string {
-	const timestamp = Date.parse(date);
-	if (Number.isNaN(timestamp)) {
-		return date.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+	const d = parseISODate(date);
+	if (!d) {
+		// A display string like "November 21, 2026" still parses, but only as
+		// local time, so the day is not shifted.
+		const timestamp = Date.parse(date);
+		if (Number.isNaN(timestamp)) {
+			return date.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+		}
+		const parsed = new Date(timestamp);
+		return `${MONTH_ABBR[parsed.getMonth()]}-${parsed.getDate()}`;
 	}
-	const d = new Date(timestamp);
 	return `${MONTH_ABBR[d.getMonth()]}-${d.getDate()}`;
 }
 
 export function findShowBySlug(shows: Show[], slug: string): Show | undefined {
 	const normalized = slug.toLowerCase();
-	return shows.find((s) => showSlug(s.date) === normalized);
+	// Keyed on the ISO date so a slug can never resolve to the wrong show.
+	return shows.find((s) => showSlug(showKey(s)) === normalized);
 }
 
 /** ISO date (yyyy-mm-dd) for storing in a Postgres date column. */
 export function toISODate(date: string): string {
+	// Already ISO: return it untouched rather than round-tripping it.
+	const iso = parseISODate(date);
+	if (iso)
+		return `${iso.getFullYear()}-${String(iso.getMonth() + 1).padStart(2, '0')}-${String(iso.getDate()).padStart(2, '0')}`;
+
 	const timestamp = Date.parse(date);
 	if (Number.isNaN(timestamp)) return date;
 	const d = new Date(timestamp);

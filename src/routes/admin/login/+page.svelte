@@ -1,5 +1,11 @@
 <script lang="ts">
-	let { form }: { form: { incorrect?: boolean } | null } = $props();
+	let {
+		data,
+		form
+	}: {
+		data: { configured: boolean };
+		form: { incorrect?: boolean; notConfigured?: boolean } | null;
+	} = $props();
 </script>
 
 <svelte:head>
@@ -17,21 +23,56 @@
 			Private
 		</h1>
 
-		<form method="POST" class="flex flex-col gap-4">
-			<label for="password" class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase">
-				Password
-			</label>
-			<input
-				type="password"
-				id="password"
-				name="password"
-				autocomplete="current-password"
-				required
-				class="w-full border-2 border-white/20 bg-black/30 px-4 py-3 text-lg text-white transition-colors outline-none focus:border-[var(--yellow)]"
-			/>
+		<!--
+			autocomplete and name on both fields are what let a password manager
+			save and refill the pair. The order is username then password, which is
+			what managers expect, and the form is given a name so the saved login is
+			labelled meaningfully.
+		-->
+		<form method="POST" autocomplete="on" class="flex flex-col gap-4">
+			<div class="flex flex-col gap-2">
+				<label for="username" class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase">
+					User
+				</label>
+				<input
+					type="text"
+					id="username"
+					name="username"
+					autocomplete="username"
+					autocapitalize="none"
+					autocorrect="off"
+					spellcheck="false"
+					enterkeyhint="next"
+					required
+					class="w-full border-2 border-white/20 bg-black/30 px-4 py-3 text-lg text-white transition-colors outline-none focus:border-[var(--yellow)]"
+				/>
+			</div>
 
-			{#if form?.incorrect}
-				<p class="m-0 text-sm font-semibold text-[var(--red)]">Incorrect password</p>
+			<div class="flex flex-col gap-2">
+				<label for="password" class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase">
+					Pass
+				</label>
+				<input
+					type="password"
+					id="password"
+					name="password"
+					autocomplete="current-password"
+					enterkeyhint="go"
+					required
+					class="w-full border-2 border-white/20 bg-black/30 px-4 py-3 text-lg text-white transition-colors outline-none focus:border-[var(--yellow)]"
+				/>
+			</div>
+
+			{#if form?.notConfigured || !data.configured}
+				<p
+					class="m-0 border-2 border-[var(--yellow)] bg-[var(--yellow)]/10 px-3 py-3 text-sm font-semibold"
+				>
+					No admin accounts are configured on this deploy. Set
+					<code class="text-[var(--yellow)]">ADMIN_USERS</code> (for example
+					<code class="text-[var(--yellow)]">chris:...</code>) in the environment and redeploy.
+				</p>
+			{:else if form?.incorrect}
+				<p class="m-0 text-sm font-semibold text-[var(--red)]">Incorrect user or pass</p>
 			{/if}
 
 			<button

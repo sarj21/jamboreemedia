@@ -1,21 +1,22 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
-import { sessionCookie, verifySessionToken } from '$lib/admin';
+import { sessionCookie, readSession } from '$lib/admin';
 
 const LOGIN_PATH = '/admin/login';
 
 export const load: LayoutServerLoad = async ({ cookies, url }) => {
-	const authed = verifySessionToken(cookies.get(sessionCookie.name));
+	const session = readSession(cookies.get(sessionCookie.name));
 
 	// The login page is the one route reachable without a session.
-	if (!authed && url.pathname !== LOGIN_PATH) {
+	if (!session && url.pathname !== LOGIN_PATH) {
 		redirect(303, LOGIN_PATH);
 	}
 
 	// Already signed in and sitting on the login form? Skip past it.
-	if (authed && url.pathname === LOGIN_PATH) {
+	if (session && url.pathname === LOGIN_PATH) {
 		redirect(303, '/admin');
 	}
 
-	return { authed };
+	// Which of us is signed in, so edits can be attributed.
+	return { authed: session !== null, username: session?.username ?? null };
 };

@@ -4,18 +4,12 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { applicationSchema } from '$lib/schema';
 import { getSupabase } from '$lib/supabase';
-import shows from '$lib/shows.json';
-import {
-	findShowBySlug,
-	isAcceptingBookings,
-	showLogistics,
-	toISODate,
-	type Show
-} from '$lib/show';
+import { findShow } from '$lib/shows-db';
+import { isAcceptingApplications, showKey, showLogistics } from '$lib/show';
 
 export const load: PageServerLoad = async ({ params }) => {
-	const show = findShowBySlug(shows as Show[], params.date);
-	if (!show || !isAcceptingBookings(show)) {
+	const show = await findShow(params.date);
+	if (!show || !isAcceptingApplications(show)) {
 		error(404, 'Show not open for applications');
 	}
 
@@ -34,8 +28,8 @@ export const load: PageServerLoad = async ({ params }) => {
 
 export const actions: Actions = {
 	default: async (event) => {
-		const show = findShowBySlug(shows as Show[], event.params.date);
-		if (!show || !isAcceptingBookings(show)) {
+		const show = await findShow(event.params.date);
+		if (!show || !isAcceptingApplications(show)) {
 			error(404, 'Show not open for applications');
 		}
 
@@ -47,13 +41,15 @@ export const actions: Actions = {
 
 		const { name, instagram, disciplines, notes } = form.data;
 
-		const { error: insertError } = await getSupabase().from('applications').insert({
-			show_date: toISODate(show.date),
-			name,
-			instagram,
-			disciplines: disciplines?.trim() ? disciplines : null,
-			notes: notes?.trim() ? notes : null
-		});
+		const { error: insertError } = await getSupabase()
+			.from('applications')
+			.insert({
+				show_date: showKey(show),
+				name,
+				instagram,
+				disciplines: disciplines?.trim() ? disciplines : null,
+				notes: notes?.trim() ? notes : null
+			});
 
 		if (insertError) {
 			console.error('applications insert error:', insertError);

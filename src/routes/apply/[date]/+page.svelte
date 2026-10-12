@@ -9,7 +9,12 @@
 
 	// Read the error off the action result so it survives a no-JS submit,
 	// where onResult never fires. applyAction keeps this in sync when hydrated.
-	const { form: formData, enhance, errors, constraints } = superForm(data.form, {
+	const {
+		form: formData,
+		enhance,
+		errors,
+		constraints
+	} = superForm(data.form, {
 		validators: zod4Client(applicationSchema)
 	});
 </script>
@@ -46,7 +51,9 @@
 		</p>
 	</header>
 
-	<section class="relative z-[3] mx-auto mt-[clamp(24px,4vh,48px)] flex w-full max-w-[600px] flex-col gap-[clamp(20px,3vh,36px)]">
+	<section
+		class="relative z-[3] mx-auto mt-[clamp(24px,4vh,48px)] flex w-full max-w-[600px] flex-col gap-[clamp(20px,3vh,36px)]"
+	>
 		{#if data.notes}
 			<div class="border-l-4 border-[var(--yellow)] bg-white/5 p-5">
 				<p class="m-0 text-sm leading-relaxed text-white/70">{data.notes}</p>
@@ -75,7 +82,10 @@
 			</div>
 
 			<div class="flex flex-col gap-2">
-				<label for="instagram" class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase">
+				<label
+					for="instagram"
+					class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase"
+				>
 					Instagram
 				</label>
 				<input
@@ -118,10 +128,7 @@
 
 			<div class="flex flex-col gap-2">
 				<div class="flex items-center gap-2">
-					<label
-						for="notes"
-						class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase"
-					>
+					<label for="notes" class="text-sm font-extrabold tracking-[2px] text-white/90 uppercase">
 						Anything else we should know?
 					</label>
 					<span class="optional-tag">Optional</span>
@@ -138,7 +145,9 @@
 			</div>
 
 			{#if form?.submitError}
-				<p class="m-0 border-2 border-[var(--red)] bg-[var(--red)]/20 px-4 py-3 text-sm font-semibold">
+				<p
+					class="m-0 border-2 border-[var(--red)] bg-[var(--red)]/20 px-4 py-3 text-sm font-semibold"
+				>
 					{form?.submitError}
 				</p>
 			{/if}

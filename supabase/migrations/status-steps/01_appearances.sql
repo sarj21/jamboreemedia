@@ -1,0 +1,23 @@
+-- Scheduling flags, and a "not considering" state.
+--
+-- status becomes a four-step funnel:
+--   applied -> considering -> booked
+--   not_considering  a decided no, distinct from "we haven't looked yet"
+--
+-- On top of that, three orthogonal flags, all defaulting to false so existing
+-- rows need no change:
+--   busy          not free on this date
+--   dropped       was booked, then could not do it
+--   should_rebook post-show: we want them back
+--
+-- `would_return` is renamed to `should_rebook` rather than duplicated: the two
+-- said the same thing from opposite sides, and keeping both let a row claim
+-- they would return while also saying we did not want them back.
+
+-- ---------------------------------------------------------------------------
+-- 1. status check constraint
+-- ---------------------------------------------------------------------------
+--
+-- The constraint is dropped by the name it is given here rather than looked up,
+-- so this is safe whether or not that name was ever in use.
+alter table appearances drop constraint if exists appearances_status_check
