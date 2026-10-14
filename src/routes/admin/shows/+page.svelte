@@ -2,6 +2,7 @@
 	import type { PageProps } from './$types';
 	import type { ShowRow } from '$lib/show';
 	import { formatShowDate } from '$lib/show';
+	import { shortLinkFor } from '$lib/short-link';
 	import { enhance } from '$app/forms';
 
 	type Result = {
@@ -15,6 +16,8 @@
 
 	const shows = $derived(data.shows as ShowRow[]);
 	const counts = $derived(data.counts as Record<string, { appearances: number; bookings: number }>);
+	const hits = $derived(data.hits as Record<string, number>);
+	const origin = $derived(data.origin as string);
 
 	const actionError = $derived((form as Result | null)?.actionError ?? null);
 	const fieldErrors = $derived((form as Result | null)?.fieldErrors ?? {});
@@ -42,6 +45,10 @@
 	/** Friendly for reading; the ISO date stays in the edit field and URLs. */
 	function readable(show_date: string): string {
 		return formatShowDate(show_date);
+	}
+
+	function hitsFor(show_date: string): number {
+		return hits[show_date] ?? 0;
 	}
 </script>
 
@@ -172,7 +179,27 @@
 									<div class="text-sm text-white/60">{label(show)} &middot; doors {show.time}</div>
 									<div class="mt-0.5 text-[11px] text-white/35">
 										{counts[show.show_date]?.appearances ?? 0} people &middot;
-										{counts[show.show_date]?.bookings ?? 0} bookings
+										{counts[show.show_date]?.bookings ?? 0} bookings &middot;
+										{hitsFor(show.show_date)}
+										{hitsFor(show.show_date) === 1 ? 'link visit' : 'link visits'}
+									</div>
+
+									<!-- Short share link, e.g. jamboree.media/dec2 -->
+									<div class="mt-2 flex flex-wrap items-center gap-2">
+										<code class="short-link">{shortLinkFor(show.show_date, origin)}</code>
+										<a
+											href={shortLinkFor(show.show_date)}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="text-[11px] font-bold tracking-[2px] text-white/50 uppercase transition-colors hover:text-[var(--yellow)]"
+										>
+											Test
+										</a>
+										{#if !show.ticket_url}
+											<span class="text-[11px] text-white/40">
+												No ticket link yet, so this one lands on the home page
+											</span>
+										{/if}
 									</div>
 								</div>
 
@@ -450,11 +477,17 @@
 		text-transform: uppercase;
 	}
 
+	/*
+	 * Matches .show-tag in height and size. These sit on the same line as the
+	 * city badge, and at 9px on a 24px badge they read as visibly smaller.
+	 */
 	.state-tag {
 		display: inline-flex;
 		align-items: center;
-		padding: 2px 6px;
-		font-size: 9px;
+		height: 24px;
+		padding: 0 8px;
+		font-size: 11px;
+		line-height: 1;
 		font-weight: 800;
 		letter-spacing: 1px;
 		text-transform: uppercase;
@@ -490,6 +523,18 @@
 		letter-spacing: 2px;
 		text-transform: uppercase;
 		color: rgba(255, 255, 255, 0.7);
+	}
+
+	/* The short share link, shown so it can be copied out. */
+	.short-link {
+		padding: 3px 8px;
+		border: 1px solid rgba(255, 255, 255, 0.18);
+		background: rgba(0, 0, 0, 0.35);
+		color: var(--yellow);
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 1px;
+		white-space: nowrap;
 	}
 
 	/* Phone tap targets. */

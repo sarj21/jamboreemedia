@@ -9,17 +9,19 @@
 
 	// Read the error off the action result so it survives a no-JS submit,
 	// where onResult never fires. applyAction keeps this in sync when hydrated.
-	const { form: formData, enhance, errors, constraints } = superForm(data.form, {
+	const {
+		form: formData,
+		enhance,
+		errors,
+		constraints
+	} = superForm(data.form, {
 		validators: zod4Client(bookingSchema)
 	});
 </script>
 
 <svelte:head>
 	<title>Book a spot — Jamboree Media</title>
-	{#each metaTags({
-		title: `Book your spot — Jamboree (${data.date})`,
-		description: `Sign up for the Jamboree comedy show on ${data.date} in ${data.city}. Submit your details and an optional hot take to defend, then join the circle and attack everyone else's claims.`
-	}) as { attr, key, content }}
+	{#each metaTags( { title: `Book your spot — Jamboree (${data.date})`, description: `Sign up for the Jamboree comedy show on ${data.date} in ${data.city}. Submit your details and an optional hot take to defend, then join the circle and attack everyone else's claims.` } ) as { attr, key, content }}
 		<meta {...{ [attr]: key, content }} />
 	{/each}
 </svelte:head>

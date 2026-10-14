@@ -3,6 +3,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { archiveShow, listAllShowRows, restoreShow, saveShow } from '$lib/shows-db';
 import { getSupabase } from '$lib/supabase';
 import { sessionCookie } from '$lib/admin';
+import { loadHitCounts } from '$lib/short-link.server';
 
 const SHOW_TIME = /^([0-9]{1,2})(?::([0-9]{2}))?\s*(am|pm)$/i;
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
@@ -55,7 +56,7 @@ function readShowForm(form: FormData) {
 	};
 }
 
-export const load: PageServerLoad = async () => {
+export const load: PageServerLoad = async ({ url }) => {
 	const rows = await listAllShowRows();
 
 	// How much is attached to each show, so the delete warning can be honest
@@ -83,7 +84,10 @@ export const load: PageServerLoad = async () => {
 
 	return {
 		shows: rows,
-		counts
+		counts,
+		// Visit counts for the short share links, e.g. /dec2.
+		hits: await loadHitCounts(),
+		origin: url.origin
 	};
 };
 

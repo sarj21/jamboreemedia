@@ -81,27 +81,27 @@
 						rel="noopener noreferrer"
 						class="group relative mt-[14px] flex w-full items-center justify-between overflow-hidden bg-[var(--yellow)] px-6 py-[13px] ..."
 					>
-					<span
-						class="absolute inset-0 translate-y-full bg-[var(--red)] transition-transform duration-250 group-hover:translate-y-0"
-					></span>
+						<span
+							class="absolute inset-0 translate-y-full bg-[var(--red)] transition-transform duration-250 group-hover:translate-y-0"
+						></span>
 
-					<span
-						class="relative z-[1] text-[clamp(32px,5vw,68px)] leading-[0.8] font-extrabold tracking-[-0.04em] uppercase"
-					>
-						Get Tickets
-					</span>
+						<span
+							class="relative z-[1] text-[clamp(32px,5vw,68px)] leading-[0.8] font-extrabold tracking-[-0.04em] uppercase"
+						>
+							Get Tickets
+						</span>
 
-					<span
-						class="relative z-[1] text-[clamp(32px,5vw,64px)] leading-none font-extrabold transition-transform duration-250 group-hover:translate-x-[15px]"
-					>
-						→
-					</span>
+						<span
+							class="relative z-[1] text-[clamp(32px,5vw,64px)] leading-none font-extrabold transition-transform duration-250 group-hover:translate-x-[15px]"
+						>
+							→
+						</span>
 					</a>
-			{:else}
+				{:else}
 					<p class="m-0 mt-[14px] text-lg font-extrabold tracking-[2px] text-white/50 uppercase">
 						Tickets coming soon
 					</p>
-			{/if}
+				{/if}
 			</div>
 		{/each}
 	</section>

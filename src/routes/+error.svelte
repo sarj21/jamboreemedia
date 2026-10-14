@@ -28,8 +28,8 @@
 			{#if page.status === 404}
 				We couldn't find that page.
 			{:else}
-				{page.error?.message || 'Something went wrong on our end.'} Try reloading — if you were on
-				an older tab, a refresh will pick up the latest version.
+				{page.error?.message || 'Something went wrong on our end.'} Try reloading — if you were on an
+				older tab, a refresh will pick up the latest version.
 			{/if}
 		</p>
 
