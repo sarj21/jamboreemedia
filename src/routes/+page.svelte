@@ -7,12 +7,18 @@
 
 <svelte:head>
 	<title>Jamboree Media</title>
-	{#each metaTags( { title: 'Jamboree Media', description: 'A live comedy show keeping free speech alive.' } ) as { attr, key, content }}
+	{#each metaTags( { title: 'Jamboree Media', description: 'A live comedy show keeping free speech alive.' } ) as { attr, key, content } (key)}
 		<meta {...{ [attr]: key, content }} />
 	{/each}
 </svelte:head>
 
-<main class="page flex h-dvh w-full flex-col overflow-hidden px-[35px] py-[25px] text-white">
+<!--
+		min-h-dvh rather than h-dvh: with a fixed height and overflow-hidden, any
+	show beyond the fold was clipped away and could not be scrolled to, so its
+	tickets link was unreachable. Grows with the content instead, and the
+	footer's mt-auto still pins it to the bottom on a short page.
+-->
+<main class="page flex min-h-dvh w-full flex-col px-[35px] py-[18px] text-white">
 	<header class="relative z-[2] w-full">
 		<h1
 			class="brand-title m-0 w-full max-w-full overflow-hidden text-[clamp(42px,9.2vw,148px)] leading-[0.85] font-normal tracking-[-0.045em] whitespace-nowrap uppercase text-shadow-[4px_4px_0_rgba(0,0,0,0.2)]"
@@ -54,11 +60,11 @@
 	</header>
 
 	<section
-		class="relative z-[3] mt-[clamp(28px,4vh,48px)] ml-auto flex w-full max-w-[850px] flex-col gap-[clamp(20px,3vh,40px)]"
+		class="relative z-[3] mt-[clamp(20px,3vh,36px)] ml-auto flex w-full max-w-[850px] flex-col gap-[clamp(14px,2vh,26px)]"
 	>
 		{#each data.shows as show (show.date + (show.ticketUrl ?? ''))}
 			<div>
-				<div class="mb-3 flex flex-wrap items-center gap-2">
+				<div class="mb-2 flex flex-wrap items-center gap-2">
 					{#if show.isNext}
 						<span class="show-tag show-next">Next Show</span>
 					{/if}
@@ -69,7 +75,7 @@
 				</div>
 
 				<h2
-					class="m-0 w-full text-[clamp(36px,5.5vw,84px)] leading-[0.9] font-extrabold tracking-[-0.04em] uppercase"
+					class="m-0 w-full text-[clamp(26px,3.6vw,52px)] leading-[0.9] font-extrabold tracking-[-0.04em] uppercase"
 				>
 					{show.date}
 				</h2>
@@ -79,26 +85,26 @@
 						href={show.ticketUrl}
 						target="_blank"
 						rel="noopener noreferrer"
-						class="group relative mt-[14px] flex w-full items-center justify-between overflow-hidden bg-[var(--yellow)] px-6 py-[13px] ..."
+						class="group relative mt-[10px] flex w-full items-center justify-between overflow-hidden bg-[var(--yellow)] px-6 py-[10px] ..."
 					>
 						<span
 							class="absolute inset-0 translate-y-full bg-[var(--red)] transition-transform duration-250 group-hover:translate-y-0"
 						></span>
 
 						<span
-							class="relative z-[1] text-[clamp(32px,5vw,68px)] leading-[0.8] font-extrabold tracking-[-0.04em] uppercase"
+							class="relative z-[1] text-[clamp(22px,3.1vw,44px)] leading-[0.8] font-extrabold tracking-[-0.04em] uppercase"
 						>
 							Get Tickets
 						</span>
 
 						<span
-							class="relative z-[1] text-[clamp(32px,5vw,64px)] leading-none font-extrabold transition-transform duration-250 group-hover:translate-x-[15px]"
+							class="relative z-[1] text-[clamp(22px,3.1vw,40px)] leading-none font-extrabold transition-transform duration-250 group-hover:translate-x-[15px]"
 						>
 							→
 						</span>
 					</a>
 				{:else}
-					<p class="m-0 mt-[14px] text-lg font-extrabold tracking-[2px] text-white/50 uppercase">
+					<p class="m-0 mt-[10px] text-base font-extrabold tracking-[2px] text-white/50 uppercase">
 						Tickets coming soon
 					</p>
 				{/if}
@@ -106,7 +112,7 @@
 		{/each}
 	</section>
 
-	<footer class="mt-auto flex w-full justify-end pt-[30px] text-right text-[15px]">
+	<footer class="mt-auto flex w-full justify-end pt-[16px] text-right text-[15px]">
 		<div>
 			<span class="mb-1 block text-[10px] font-extrabold tracking-[2px] text-white/70 uppercase">
 				Contact
@@ -194,13 +200,13 @@
 
 		section {
 			max-width: none;
-			margin-top: 40px;
+			margin-top: 32px;
 			margin-left: 0;
-			gap: 2rem;
+			gap: 1.5rem;
 		}
 
 		section h2 {
-			font-size: clamp(28px, 9vw, 52px);
+			font-size: clamp(24px, 7vw, 40px);
 			letter-spacing: -0.03em;
 		}
 
